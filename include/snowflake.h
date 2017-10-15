@@ -1,100 +1,116 @@
 ﻿#pragma once
 
 #include <chrono>
+#include <atomic>
 
 
 namespace Snowflake
 {
+	enum class ERROR
+	{
+		NONE = 0,
+		WORKER_Id_GREATER_OR_LESS_MAX_WORKER_Id = -1,
+		DATACENTER_Id_GREATER_OR_LESS_0 = -2,
+		INVALIDSYSTEMCLOCK_CLOCK_MOVED_BACKWARDS = -3,
+	};
+
 	class IdWorker
 	{
 	public:
 		IdWorker() = default;
 		~IdWorker() = default;
 
-		// TODO: bool 이 아닌 enum 으로 바꾸기
-		bool Init(long workerId, long datacenterId, long sequence = 0L)
+		ERROR Init(long workerId, long datacenterId, long sequence = 0L)
 		{
-			WorkerId = workerId;
-			DatacenterId = datacenterId;
-			_sequence = sequence;
+			m_WorkerId = workerId;
+			m_DatacenterId = datacenterId;
+			m_Sequence = sequence;
 
 			// sanity check for workerId
-			if (workerId > MaxWorkerId || workerId < 0)
+			if (workerId > MAX_WORKER_Id || workerId < 0)
 			{
 				//throw new ArgumentException(String.Format("worker Id can't be greater than {0} or less than 0", MaxWorkerId));
-				return false;
+				return ERROR::WORKER_Id_GREATER_OR_LESS_MAX_WORKER_Id;
 			}
 
-			if (datacenterId > MaxDatacenterId || datacenterId < 0)
+			if (datacenterId > MAX_DATA_CENTER_Id || datacenterId < 0)
 			{
 				//throw new ArgumentException(String.Format("datacenter Id can't be greater than {0} or less than 0", MaxDatacenterId));
-				return false;
+				return ERROR::DATACENTER_Id_GREATER_OR_LESS_0;
 			}
+
+			return ERROR::NONE;
 		}
 
 
-		//TODO: 엄청나게 큰 숫자를 에러번호로 하기. 에러번호 define 하기
+		// 새로운 시퀸스번호를 생성한다. 0 보다 작은 숫자가 나오면 에러이다.
 		long long NextId()
 		{
-			//TODO: 락 걸기
-			//lock(_lock)
-			//{
+			// 락 걸기
+			ENTER_LOCK();
+
 			auto timestamp = TimeGen();
 
-			if (timestamp < _lastTimestamp)
-			{
-				//throw new InvalidSystemClock(String.Format("Clock moved backwards.  Refusing to generate id for {0} milliseconds", _lastTimestamp - timestamp));
-				return 0;
-			}
-
-			if (_lastTimestamp == timestamp)
-			{
-				_sequence = (_sequence + 1) & SequenceMask;
-				if (_sequence == 0)
+			if (timestamp >= m_LastTimestamp)
+			{			
+				if (m_LastTimestamp == timestamp)
 				{
-					timestamp = TilNextMillis(_lastTimestamp);
+					m_Sequence = (m_Sequence + 1) & SEQUENCE_MASK;
+
+					if (m_Sequence == 0)
+					{
+						timestamp = TilNextMillis(m_LastTimestamp);
+					}
 				}
-			}
-			else {
-				_sequence = 0;
-			}
+				else
+				{
+					m_Sequence = 0;
+				}
+				LEAVE_LOCK(); // 락 해제
 
-			_lastTimestamp = timestamp;
-			auto id = ((timestamp - Twepoch) << TimestampLeftShift) | (DatacenterId << DatacenterIdShift) | (WorkerId << WorkerIdShift) | _sequence;
+				m_LastTimestamp = timestamp;
+				auto id = ((timestamp - TWEPOCH) << TIME_STAMP_LEFT_SHIFT) |
+							(m_DatacenterId << DATACENTER_ID_SHIFT) |
+							(m_WorkerId << WORKER_Id_SHIFT) |
+							m_Sequence;
 
-			return id;
-			//}
+				return id;
+			}
+						
+			LEAVE_LOCK(); // 락 해제
+			return static_cast<long long>(ERROR::INVALIDSYSTEMCLOCK_CLOCK_MOVED_BACKWARDS);
 		}
 
-
+		// 개발자 기능. 생성한 시퀸스번호를 기준으로 생성 시간의 밀리세컨드를 반환한다.
 		long long DevSeqIdToTimeStamp(long long seqId)
 		{
-			auto timeStamp = (seqId >> 22) + Twepoch;
+			auto timeStamp = (seqId >> 22) + TWEPOCH;
 			return timeStamp;
 		}
 
 
 	private:
-		const long Twepoch = 1288834974657L;
+		const long TWEPOCH = 1288834974657L;
 
-		const int WorkerIdBits = 5;
-		const int DatacenterIdBits = 5;
-		const int SequenceBits = 12;
-		const long MaxWorkerId = -1L ^ (-1L << WorkerIdBits);
-		const long MaxDatacenterId = -1L ^ (-1L << DatacenterIdBits);
+		const int WORJER_Id_BITS = 5;
+		const int DATACENTERIDBITS = 5;
+		const int SEQUENCE_BITS = 12;
 
-		const int WorkerIdShift = SequenceBits;
-		const int DatacenterIdShift = SequenceBits + WorkerIdBits;
-		const int TimestampLeftShift = SequenceBits + WorkerIdBits + DatacenterIdBits;
-		const long SequenceMask = -1L ^ (-1L << SequenceBits);
+		const long MAX_WORKER_Id = -1L ^ (-1L << WORJER_Id_BITS);
+		const long MAX_DATA_CENTER_Id = -1L ^ (-1L << DATACENTERIDBITS);
 
-		long _sequence = 0L;
-		long _lastTimestamp = -1L;
+		const int WORKER_Id_SHIFT = SEQUENCE_BITS; 
+		const int DATACENTER_ID_SHIFT = SEQUENCE_BITS + WORJER_Id_BITS;
+		const int TIME_STAMP_LEFT_SHIFT = SEQUENCE_BITS + WORJER_Id_BITS + DATACENTERIDBITS;
+		const long SEQUENCE_MASK = -1L ^ (-1L << SEQUENCE_BITS);
 
 
-		long WorkerId = 0;
-		long DatacenterId = 0;
-		long Sequence = 0;
+		long m_Sequence = 0L;
+		long m_LastTimestamp = -1L;
+
+		long m_WorkerId = 0;
+		long m_DatacenterId = 0;
+		//long Sequence = 0;
 	
 
 		long long TilNextMillis(long long lastTimestamp)
@@ -109,10 +125,36 @@ namespace Snowflake
 			return timestamp;
 		}
 
+		//밀리세컨드 단위의 현재 시간
 		long long TimeGen()
 		{
 			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 			return milliseconds.count();
 		}
+
+
+		// Lock
+#ifndef UN_USED_LOCK
+		std::atomic<int> m_AtomicLock = 0;
+
+		void ENTER_LOCK()
+		{
+			for (int nloops = 0; ; nloops++)
+			{
+				if (std::atomic_compare_exchange_strong(&m_AtomicLock, 0, 1))
+				{
+					return;
+				}
+			}
+		}
+
+		void LEAVE_LOCK()
+		{
+			m_AtomicLock = 0;
+		}
+#else
+		void ENTER_LOCK() {}
+		void LEAVE_LOCK() {}
+#endif
 	};
 }
