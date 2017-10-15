@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// 만든이: 최흥배
+// 오픈소스로 공개된 snowflake의 C# 버전(https://github.com/ccollie/snowflake-net)을 거의 그대로 C++로 포팅한 것이다.
+//
+#pragma once
 
 #include <chrono>
 #include <atomic>
