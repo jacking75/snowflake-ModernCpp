@@ -11,7 +11,7 @@
   
   
 ### 사용법 
-include 디렉토리에 있는 snowflake.h 파일만 추가하면 된다. 
+include 디렉토리에 있는 snowflake.h 파일만 추가하면 된다.      
 test 디렉토리에는 snowflake-ModernCpp을 이용한 Visual Studio로 만든 콘솔 애플리케이션이 있다.  
 멀티스레드에서 사용할 수 있다.  
 만약 멀티스레드에서 사용하지 않는다면 **UN_USED_LOCK**를 선언하는 것이 좋다.  
