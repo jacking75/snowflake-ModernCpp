@@ -72,7 +72,7 @@ int main()
 ## snowflake ?  
 - An open source library created on Twitter. The main purpose is to generate a serial number on a distributed server.
     
-## 사용법 
+## How to use
 - Just add the snowflake.h file in the include directory.
 - The test directory contains a console application created with Visual Studio using snowflake-ModernCpp.
 - Can be used in multi-threaded.
