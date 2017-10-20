@@ -1,4 +1,5 @@
-# snowflake-ModernCpp
+# 한글
+## snowflake-ModernCpp
 - C++11을 지원하는 snowflake.  
 - C++11을 지원하는 모든 컴파일러에서 사용할 수 있다.
 - 크로스 플랫폼 지원.
@@ -17,7 +18,7 @@ test 디렉토리에는 snowflake-ModernCpp을 이용한 Visual Studio로 만든
 만약 멀티스레드에서 사용하지 않는다면 **UN_USED_LOCK**를 선언하는 것이 좋다.  
   
    
-#### 예제 프로그램  
+#### Sample Program  
 ```
 #include <iostream>
 
@@ -59,3 +60,21 @@ int main()
 	return 0;
 }
 ```
+  
+  
+# English  
+## snowflake-ModernCpp
+- Snowflake with C ++ 11 support.
+- Can be used by any compiler that supports C ++ 11.
+- Cross-platform support.
+- Converted to C ++ based on the C # version of snowflake (https://github.com/ccollie/snowflake-net).
+    
+## snowflake ?  
+- An open source library created on Twitter. The main purpose is to generate a serial number on a distributed server.
+    
+## 사용법 
+- Just add the snowflake.h file in the include directory.
+- The test directory contains a console application created with Visual Studio using snowflake-ModernCpp.
+- Can be used in multi-threaded.
+     - If you are not using it in multi-threading, you should declare **UN_USED_LOCK**  
+  
