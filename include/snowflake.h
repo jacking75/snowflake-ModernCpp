@@ -131,7 +131,11 @@ namespace Snowflake
 		//밀리세컨드 단위의 현재 시간
 		long long TimeGen()
 		{
+#ifdef __USED_STEADY_TIMER__
+			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_timer::now().time_since_epoch());
+#else
 			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+#endif
 			return milliseconds.count();
 		}
 

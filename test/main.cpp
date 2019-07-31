@@ -30,8 +30,8 @@ int main()
 	timeStampToHumanReadableDate(Sequence1.DevSeqIdToTimeStamp(seq1), seq1HumanReadableDateBuffer);
 	timeStampToHumanReadableDate(Sequence2.DevSeqIdToTimeStamp(seq2), seq2HumanReadableDateBuffer);
 
-	printf("seq1: %uld, timeStamp: %uld, %s\r\n", seq1, Sequence1.DevSeqIdToTimeStamp(seq1), seq1HumanReadableDateBuffer);
-	printf("seq2: %uld, timeStamp: %uld, %s\r\n", seq2, Sequence2.DevSeqIdToTimeStamp(seq2), seq2HumanReadableDateBuffer);
+	printf("seq1: %ld, timeStamp: %ld, %s\r\n", seq1, Sequence1.DevSeqIdToTimeStamp(seq1), seq1HumanReadableDateBuffer);
+	printf("seq2: %ld, timeStamp: %ld, %s\r\n", seq2, Sequence2.DevSeqIdToTimeStamp(seq2), seq2HumanReadableDateBuffer);
 
 	return 0;
 }

@@ -16,8 +16,17 @@ include 디렉토리에 있는 snowflake.h 파일만 추가하면 된다.
 test 디렉토리에는 snowflake-ModernCpp을 이용한 Visual Studio로 만든 콘솔 애플리케이션이 있다.  
 멀티스레드에서 사용할 수 있다.  
 만약 멀티스레드에서 사용하지 않는다면 **UN_USED_LOCK**를 선언하는 것이 좋다.  
-  
    
+#### 시간이 역행하지 않는 타이머 사용하기   
+snowflake를 사용할 때 가장 조심해야 할 부분은 사용 도중 OS의 시간이 역행하지 않게 하는 것이다.    
+시간 동기화나 사용자의 행동에 의해 시간이 역행 될 수있는데 이런 경우 올바른 일련 번호를 생성할 수 없다.  
+만약 위와 같이 시간이 역행 되는 것을 막고 싶다면 snowflake를 include 하기 전에 '__USED_STEADY_TIMER__'을 선언한다.  
+```
+#define __USED_STEADY_TIMER__ 1
+#include "snowflake.h"
+```
+     
+	 
 #### Sample Program  
 ```
 #include <iostream>
